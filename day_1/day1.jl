@@ -30,9 +30,11 @@ function Rotation(str::String)
 end
 
 function Base.:+(state::DialState, rot::Rotation)::DialState
-    p₀ = rot.direction == left ? state.position - rot.distance : state.position + rot.distance
-    p = p₀ < 0 ? ticks - abs(p₀) % ticks : p₀ % ticks
-    DialState(p, p == 0 ? state.resets + 1 : state.resets)
+    d = rot.distance % ticks
+    p = rot.direction == left ? state.position - d : state.position + d
+    p₁ = p < 0 ? p + 100 : p
+    p₂ = p₁ % 100
+    DialState(p₂, p₂ == 0 ? state.resets + 1 : state.resets)
 end
 
 Base.show(io::IO, r::Rotation) = print(io, r.direction == left ? "L" : "R", r.distance)
