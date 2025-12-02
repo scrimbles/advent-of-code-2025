@@ -5,7 +5,11 @@ using .Rotations: Rotation, DialState
 
 function loudplus(s::DialState, r::Rotation)::DialState
     newstate = s + r
-    println("The dial is rotated ", r, " to point at ", newstate.position, ".")
+    if newstate.resets > s.resets && newstate.position != 0
+        println("The dial is rotated ", r, " to point at ", newstate.position, ", crossing through zero ", newstate.resets - s.resets, " times.")
+    else
+        println("The dial is rotated ", r, " to point at ", newstate.position, ".")
+    end
     newstate
 end
 
