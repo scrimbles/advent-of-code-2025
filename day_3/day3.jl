@@ -2,17 +2,18 @@
 
 using Pipe: @pipe
 
-function J₁(js, ds, rem)
-    rem == 0 ? ds : begin
-        d, r = findmax(identity, js[1:end-(rem-1)])
-        J₁(js[r+1:end], vcat(ds, d), rem - 1)
-    end
-end
-
 "Find the maximum Joltage for a bank of batteries js using digits d"
-function Jₘ(js, d)
-    ds = J₁(js, [], d)
-    sum([10^(i - 1) * d for (i, d) in ds |> reverse |> enumerate])
+function Jₘ(js::Vector{Int}, dₙ::Int)::Int
+    Σ = 0
+    radix = 1 # begin at beginning of array
+
+    for dᵢ in 1:dₙ
+        dᵣ = dₙ - dᵢ
+        d, radix = findmax(identity, js[radix:end-(dᵣ)])
+        Σ += d * 10^(dᵣ)
+    end
+
+    Σ
 end
 
 bs2b(bs) = map(b -> parse(Int, b), split(bs, ""))
