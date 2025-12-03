@@ -3,13 +3,10 @@
 using Pipe: @pipe
 
 function J₁(js, ds, rem)
-    if rem == 0
-        return ds
+    rem == 0 ? ds : begin
+        d, r = findmax(identity, js[1:end-(rem-1)])
+        J₁(js[r+1:end], vcat(ds, d), rem - 1)
     end
-
-    d₀, r = findmax(identity, js[1:end-(rem-1)])
-
-    J₁(js[r+1:end], vcat(ds, d₀), rem - 1)
 end
 
 "Find the maximum Joltage for a bank of batteries js using digits d"
