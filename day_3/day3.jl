@@ -20,8 +20,11 @@ end
 
 bs2b(bs) = map(b -> parse(Int, b), split(bs, ""))
 
+filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
 result = @pipe(
-    map(bs2b, readlines(ARGS[1]))
+    filename
+    |> readlines
+    |> map(bs2b, _)
     |> map(b -> Jₘ(b, 12), _)
     |> sum
 )
