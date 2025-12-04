@@ -33,7 +33,7 @@ function part2(filename)
         end
         println("Removing ", Σᵢ, " rolls of paper.")
         Σ += Σᵢ
-        M = map(i -> M[i] ⊻ Mₜ[i], eachindex(IndexCartesian(), M))
+        M = M .⊻ Mₜ
     end
 
     Σ
