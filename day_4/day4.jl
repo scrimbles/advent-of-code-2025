@@ -9,32 +9,18 @@ function pad(grid::Matrix{Int64})
     grid₁
 end
 
-function reachable(i::CartesianIndex{2}, M::Matrix{Int})::Int
-    if M[i] == 0 # we cannot retrieve a roll of paper that is not there
-        return 0
-    end
-    n = sum(pad(M)[(i[1]):(i[1]+2), (i[2]):(i[2]+2)]) - M[i]
-    n < 4 ? 1 : 0
-end
+δ(i) = [i[1]:(i[1]+2), i[2]:(i[2]+2)]
+R(i, M) = M[i] == 1 && (sum(pad(M)[δ(i)...]) - 1) < 4 |> Int
 
-T(M) = map(i -> reachable(i, M), eachindex(IndexCartesian(), M))
+T(M) = map(i -> R(i, M), eachindex(IndexCartesian(), M))
+l2n(s::String)::Vector{Int} = [parse(Int, elem) for elem in replace(replace(s, Pair('.', '0')), Pair('@', 1))]
 
-l2n₁(s::String)::String = replace(replace(s, Pair('.', '0')), Pair('@', 1))
-l2n(s::String)::Vector{Int} = [parse(Int, elem) for elem in l2n₁(s)]
-
-part1(filename) = @pipe(
-    readlines(filename)
-    |> map(l2n, _)
-    |> reduce(hcat, _)
-    |> T
-    |> sum
-)
-
+part1(filename) = @pipe(readlines(filename) |> map(l2n, _) |> stack |> T |> sum)
 function part2(filename)
     M = @pipe(
         readlines(filename)
         |> map(l2n, _)
-        |> reduce(hcat, _)
+        |> stack
     )
 
     Σ = 0
@@ -56,6 +42,8 @@ end
 filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
 
 
-println("Part I: ", part1(filename))
+println("Part I: ")
+println(part1(filename), " accessible rolls of paper.")
+println("")
 println("Part II:")
 println(part2(filename))
