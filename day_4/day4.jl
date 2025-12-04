@@ -16,22 +16,46 @@ function reachable(i::CartesianIndex{2}, M::Matrix{Int})::Int
     n = sum(pad(M)[(i[1]):(i[1]+2), (i[2]):(i[2]+2)]) - M[i]
     n < 4 ? 1 : 0
 end
+
+T(M) = map(i -> reachable(i, M), eachindex(IndexCartesian(), M))
+
 l2n₁(s::String)::String = replace(replace(s, Pair('.', '0')), Pair('@', 1))
 l2n(s::String)::Vector{Int} = [parse(Int, elem) for elem in l2n₁(s)]
 
-
-filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
-grid = @pipe(
+part1(filename) = @pipe(
     readlines(filename)
     |> map(l2n, _)
     |> reduce(hcat, _)
-)
-
-Σ = @pipe(
-    grid
-    |> eachindex(IndexCartesian(), _)
-    |> map(i -> reachable(i, grid), _)
+    |> T
     |> sum
 )
 
-println(Σ)
+function part2(filename)
+    M = @pipe(
+        readlines(filename)
+        |> map(l2n, _)
+        |> reduce(hcat, _)
+    )
+
+    Σ = 0
+    while !iszero(M)
+        Mₜ = T(M)
+        Σᵢ = sum(Mₜ)
+        if Σᵢ == 0
+            println("No more accessible rolls of paper.")
+            break
+        end
+        println("Removing ", Σᵢ, " rolls of paper.")
+        Σ += Σᵢ
+        M = map(i -> M[i] ⊻ Mₜ[i], eachindex(IndexCartesian(), M))
+    end
+
+    Σ
+end
+
+filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
+
+
+println("Part I: ", part1(filename))
+println("Part II:")
+println(part2(filename))
