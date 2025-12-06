@@ -34,7 +34,7 @@ function combine(R)
     a₁, b₁ = 0, 0
     for r ∈ R
         a₂, b₂ = r
-        if a₂ > b₁
+        if a₂ > b₁ + 1
             # no overlap, store current range to R₁
             if a₁ != b₁ # ignore the starting 0,0
                 push!(R₁, Pair(a₁, b₁))
