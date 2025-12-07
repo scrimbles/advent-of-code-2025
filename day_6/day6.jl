@@ -29,18 +29,16 @@ part1(filename) = @pipe(
     |> sum
 )
 
-parsenums(lines) = @pipe(
-    lines
-    |> map(collect, _)
-    |> zip(_...)
-    |> map(s -> string(s...), _)
-    |> map(s -> all(isspace, s) ? missing : parse(Int, s), _)
-    |> chunk
-)
-
 function part2(filename)
     lines = readlines(filename)
-    nums = parsenums(lines[1:end-1])
+    nums = @pipe(
+        lines[1:end-1]
+        |> map(collect, _)
+        |> zip(_...)
+        |> map(s -> string(s...), _)
+        |> map(s -> all(isspace, s) ? missing : parse(Int, s), _)
+        |> chunk
+    )
 
     ops = lines[end] |> split |> s -> map(ϕ, s)
 
