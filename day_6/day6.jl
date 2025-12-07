@@ -4,7 +4,7 @@ using Pipe: @pipe
 
 ϕ(str) = str == "+" ? Base.:+ : Base.:*
 solve(prob) = reduce(ϕ(prob[end]), map(n -> parse(Int, n), prob[1:end-1]))
-V(n, L) = vcat(fill(' ', L - length(n)), collect(n))
+
 function chunk(vec)
     chunked = []
     current = []
@@ -19,15 +19,6 @@ function chunk(vec)
 
     push!(chunked, current)
     chunked
-end
-
-function Mat(nums)
-    L = max(map(length, nums)...)
-    @pipe(
-        nums
-        |> map(n -> V(n, L), _)
-        |> reduce(hcat, _)
-    )
 end
 
 part1(filename) = @pipe(
