@@ -13,6 +13,11 @@ coords(line) = @pipe(
     |> map(n -> parse(Int, n), _)
 )
 
+"""
+Finds smallest connection between any two junctions.
+Returns indicies of two circuits to connect,
+as well as the relevant junctions within those circuits to connect
+"""
 function minⱼ(J)
     js = length(J)
     L = Inf
@@ -37,6 +42,7 @@ function minⱼ(J)
     I₁, I₂, J₁, J₂
 end
 
+"Creates vector containing coordinate pairs for all elements on triangular matrix composition of given vectors"
 function connections(js)
     c = []
     for (i₁, j₁) in enumerate(js[1:end])
@@ -48,8 +54,8 @@ function connections(js)
     c
 end
 
-
-function part1(filename, N)
+"Finds Product of sizes of three largest circuits after connecting the N shortest connections"
+function part1(filename, N; debugmode)
     jxns = @pipe(
         filename
         |> readlines(_)
@@ -61,7 +67,9 @@ function part1(filename, N)
     circuits = @pipe(jxns |> map(j -> Set([j]), _))
 
     for conn in cxns[1:N]
-        println("Connecting ", conn)
+        if debugmode
+            println("Connecting ", conn)
+        end
 
         c₁ = findfirst(circ -> conn[1] in circ, circuits)
         c₂ = findfirst(circ -> conn[2] in circ, circuits)
@@ -73,11 +81,16 @@ function part1(filename, N)
     end
 
     sort!(circuits; lt=Base.:>, by=c -> length(c))
+    soln = @pipe(circuits |> map(length, _) |> reduce(*, _[1:3]))
 
-    println("Product of sizes of largest three circuits: ", @pipe(circuits |> map(length, _) |> reduce(*, _[1:3])))
+    if debugmode
+        println("Product of sizes of largest three circuits: ", soln)
+    end
+    soln
 end
 
-function part2(filename)
+"Finds the product of the X coordinates of the last two junction boxes to connect to form one circuit"
+function part2(filename; debugmode)
     circuits = @pipe(
         filename
         |> readlines(_)
@@ -89,19 +102,32 @@ function part2(filename)
 
     while length(circuits) > 1
         i₁, i₂, j₁, j₂ = minⱼ(circuits)
-        println(length(circuits), " circuits remaining. Connecting: ", j₁, " => ", j₂)
+        if debugmode
+            println(length(circuits), " circuits remaining. Connecting: ", j₁, " => ", j₂)
+        end
 
         circuits[i₁] = union(circuits[i₁], circuits[i₂])
         deleteat!(circuits, i₂)
     end
 
-    println("Product of last two X coordinates connected: ", j₁[1] * j₂[1])
+    soln = j₁[1] * j₂[1]
+
+    if debugmode
+        println("Product of last two X coordinates connected: ", j₁[1] * j₂[1])
+    end
+
+    soln
 end
 
-filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
+debugmode = any(arg -> arg == "-d" || arg == "--debug", ARGS)
+posargs = filter(arg -> arg != "-d" && arg != "--debug", ARGS)
+
+filename = length(posargs) >= 1 ? posargs[1] : "input.txt"
+N = length(posargs) >= 2 ? parse(Int, posargs[2]) : 1000
+
 println("Part I:")
-part1(filename, 1000)
+part1(filename, N; debugmode) |> println
 println("")
 
 println("Part II:")
-part2(filename)
+part2(filename; debugmode) |> println
