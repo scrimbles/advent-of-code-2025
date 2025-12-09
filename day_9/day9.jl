@@ -5,26 +5,14 @@ using Memoization: @memoize
 
 @memoize area(p₁, p₂) = (abs(p₁[1] - p₂[1]) + 1) * (abs(p₁[2] - p₂[2]) + 1)
 parseline(l) = @pipe(l |> split(_, ',') |> map(n -> parse(Int, n), _) |> tuple(_...))
-validline(L, p₁, p₂) = length(filter(c -> c ∈ L, [(x, y) for x in p₁[1]:p₂[1] for y in p₁[2]:p₂[2]])) != 1
 
-function validrect(L, r)
+function rect_in_loop(L, r)
     p₁, p₂ = r
 
     x₋, x₊ = min(p₁[1], p₂[1]) + 1, max(p₁[1], p₂[1]) - 1
     y₋, y₊ = min(p₁[2], p₂[2]) + 1, max(p₁[2], p₂[2]) - 1
 
-    if x₋ == x₊ || y₋ == y₊
-        return validline(L, (x₋, y₋), (x₊, y₊))
-    end
-
-    edgetiles = union(
-        [(x, y₊) for x in x₋:x₊],
-        [(x, y₋) for x in x₋:x₊],
-        [(x₋, y) for y in y₋:y₊],
-        [(x₊, y) for y in y₋:y₊]
-    )
-
-    !any(tile -> tile ∈ L, edgetiles)
+    !any(looptile -> x₋ <= looptile[1] <= x₊ && y₋ <= looptile[2] <= y₊, L)
 end
 
 function combinations(l)
@@ -40,16 +28,12 @@ end
 
 function loop(coords)
     valid = Set()
-    Y₋, Y₊ = 1000, 0
-    X₋, X₊ = 1000, 0
 
     for ((x₁, y₁), (x₂, y₂)) in [zip(coords[1:end-1], coords[2:end])..., (coords[end], coords[1])]
         x₋, x₊ = sort([x₁, x₂])
         y₋, y₊ = sort([y₁, y₂])
         green = x₋ == x₊ ? [(x₋, i) for i in y₋:y₊] : [(i, y₋) for i in x₋:x₊]
-        valid = union(valid, green)
-        Y₋, Y₊ = min(Y₋, y₋), max(Y₊, y₊)
-        X₋, X₊ = min(X₋, x₋), max(X₊, x₊)
+        valid = valid ∪ green
     end
 
     valid
@@ -69,7 +53,7 @@ function part2(f)
     Threads.@threads for candidate in rects
         count += 1
         print("Trying candidate: ", count, "                                                  \r")
-        if validrect(looptiles, candidate)
+        if rect_in_loop(looptiles, candidate)
             A = area(candidate...)
             println("\nFound new max rectangle: ", candidate, " ", A, " units²")
             return A
