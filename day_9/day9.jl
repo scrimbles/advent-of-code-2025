@@ -66,7 +66,7 @@ function part2(f)
     println("Largest rectangle: ", area(rects[1]...))
 
     count = 0
-    Threads.@threads for candidate in rects[47000:end]
+    Threads.@threads for candidate in rects
         count += 1
         print("Trying candidate: ", count, "                                                  \r")
         if validrect(looptiles, candidate)
