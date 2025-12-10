@@ -58,9 +58,7 @@ function minswitches(input)
     pressed
 end
 
-function main(filename)
-    configs = map(parseinput, readlines(filename))
-end
+main(filename) = @pipe(filename |> readlines(_) |> map(parseinput, _) |> map(minswitches, _) |> sum)
 
 filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
 main(filename)
