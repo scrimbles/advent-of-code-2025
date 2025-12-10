@@ -1,6 +1,8 @@
 #!/usr/bin/env julia
 
 using Pipe: @pipe
+using RowEchelon: rref
+using LinearSolve
 
 """
 takes a string of the form [(.|#)+] and returns a binary number, padded with ones out to 16bits
@@ -23,10 +25,10 @@ parseswitches(str) = map(parseswitch, split(str))
 parseinput(input) = (
     split(input[2:end], "]")[1] |> parsebits,
     @pipe(input |> split(_, "] ")[2] |> split(_, " {")[1] |> parseswitches),
-    @pipe(input |> split(_, ") {")[2][1:end-1] |> split(_, ',') |> map(n -> parse(Int, n), _)),
+    @pipe(input |> split(_, ") {")[2][1:end-1] |> split(_, ',') |> map(n -> parse(Float64, n), _)),
 )
 
-function minswitches(input)
+function minₛ(input)
     machine, switches, _ = input
     L = length(switches)
 
@@ -58,7 +60,33 @@ function minswitches(input)
     pressed
 end
 
-main(filename) = @pipe(filename |> readlines(_) |> map(parseinput, _) |> map(minswitches, _) |> sum)
+tweak(n) = n - 0.9999999999 > floor(n) ? floor(n) + 1 : floor(n)
+tweak(n::Vector) = map(tweak, n)
+switchcol(s, Lⱼ) = @pipe(digits(s, base=2, pad=16)[end-(Lⱼ-1):end] .+ floatmin(Float64) |> reverse)
+function minⱼ(input)
+    _, switches, b = input
+    Lⱼ = length(b)
+    A = reduce(hcat, map(s -> switchcol(s, Lⱼ), switches))
+    prob = LinearProblem(A, b)
+    sol = solve(prob, KrylovJL_GMRES())
+    # sol = A \ b |> sum
+    # sol = round(sol) == sol ? sol : round(sol) - 1
+    A, b
+end
+
+main(filename, f) = @pipe(
+    filename
+    |> readlines
+    |> map(parseinput, _)
+    |> map(f, _)
+    |> sum
+)
+
+function part2(filename)
+    configs = map(parseinput, readlines(filename))
+
+end
 
 filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
-main(filename)
+println(main(filename, minₛ))
+# println(main(filename, minⱼ))
