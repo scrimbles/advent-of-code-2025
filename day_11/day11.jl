@@ -14,14 +14,12 @@ parseinput(filename) = @pipe(
         end, _; init=DefaultDict([]))
 )
 
-function part1(filename)
-    graph = parseinput(filename)
-
+function numpaths(graph, start, finish)
     paths = 0
-    generation = graph["you"]
+    generation = graph[start]
 
     while length(generation) > 0
-        outs = findall(s -> s == "out", generation)
+        outs = findall(s -> s == finish, generation)
         paths += length(outs)
         deleteat!(generation, outs)
 
@@ -35,6 +33,9 @@ function part1(filename)
     paths
 end
 
-filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
+part1(graph) = numpaths(graph, "you", "out")
 
-println(part1(filename))
+filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
+graph = parseinput(filename)
+println(part1(graph))
+println(part2(graph))
