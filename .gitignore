@@ -28,10 +28,6 @@ Manifest*.toml
 LocalPreferences.toml
 JuliaLocalPreferences.toml
 
-# For Zig (final) solutions
-.zig-cache/
-zig-out/
-*.o
 
 PUZZLE.md
 *input.txt
