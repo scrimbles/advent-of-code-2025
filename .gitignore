@@ -33,3 +33,5 @@ JuliaLocalPreferences.toml
 zig-out/
 *.o
 
+PUZZLE.md
+*input.txt
