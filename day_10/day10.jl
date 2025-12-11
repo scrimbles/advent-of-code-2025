@@ -1,8 +1,10 @@
 #!/usr/bin/env julia
 
 using Pipe: @pipe
-using RowEchelon: rref
-using LinearSolve
+using PyCall
+using DataStructures
+
+z3 = pyimport("z3")
 
 """
 takes a string of the form [(.|#)+] and returns a binary number, padded with ones out to 16bits
@@ -60,21 +62,42 @@ function minₛ(input)
     pressed
 end
 
-tweak(n) = n - 0.9999999999 > floor(n) ? floor(n) + 1 : floor(n)
-tweak(n::Vector) = map(tweak, n)
-switchcol(s, Lⱼ) = @pipe(digits(s, base=2, pad=16)[end-(Lⱼ-1):end] .+ floatmin(Float64) |> reverse)
+parseswitchtup(str) = @pipe(str |> split(_[2:end-1], ',') |> map(n -> parse(Int, n) + 1, _))
 function minⱼ(input)
-    _, switches, b = input
-    Lⱼ = length(b)
-    A = reduce(hcat, map(s -> switchcol(s, Lⱼ), switches))
-    prob = LinearProblem(A, b)
-    sol = solve(prob, KrylovJL_GMRES())
-    # sol = A \ b |> sum
-    # sol = round(sol) == sol ? sol : round(sol) - 1
-    A, b
+    switches = @pipe(input |> split(_, "] ")[2] |> split(_, " {")[1] |> map(parseswitchtup, split(_)))
+    joltages = @pipe(input |> split(_, ") {")[2][1:end-1] |> split(_, ',') |> map(n -> parse(Int, n), _))
+
+    presses = z3.Int("presses")
+    switchvars = [z3.Int(string("switch", i)) for i in 1:length(switches)]
+
+    counter2switch = DefaultDict([])
+    for (i, switch) ∈ enumerate(switches)
+        for index ∈ switch
+            counter2switch[index] = vcat(counter2switch[index], i)
+        end
+    end
+
+    eqns = []
+
+    for (counter, counterswitches) ∈ counter2switch
+        push!(eqns, joltages[counter] == sum([switchvars[i] for i in counterswitches]))
+    end
+
+    for switchvar in switchvars
+        push!(eqns, switchvar >= 0)
+    end
+
+    push!(eqns, presses == sum(switchvars))
+
+    opt = z3.Optimize()
+    opt.add(eqns)
+    opt.minimize(presses)
+    opt.check()
+
+    parse(Int, pystr(get(opt.model(), presses)))
 end
 
-main(filename, f) = @pipe(
+part1(filename, f) = @pipe(
     filename
     |> readlines
     |> map(parseinput, _)
@@ -82,11 +105,13 @@ main(filename, f) = @pipe(
     |> sum
 )
 
-function part2(filename)
-    configs = map(parseinput, readlines(filename))
-
-end
+part2(filename) = @pipe(
+    filename
+    |> readlines(_)
+    |> map(minⱼ, _)
+    |> sum
+)
 
 filename = length(ARGS) >= 1 ? ARGS[1] : "input.txt"
-println(main(filename, minₛ))
-# println(main(filename, minⱼ))
+println(part1(filename, minₛ))
+println(part2(filename))
