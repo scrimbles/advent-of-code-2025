@@ -2,7 +2,7 @@ module Rotations
 import Base.+
 
 # the number of ticks on the safe dial
-const ticks = 100 # ||[0,99]|| = 100
+const TICKS = 100 # ||[0,99]|| = 100
 
 struct DialState
     position::Integer
@@ -30,16 +30,16 @@ end
 
 z₀(p) = p == 0 ? 1 : 0
 function z₁(p₀, p₁, r)
-    Δ = floor(r.distance / ticks)
-    δ = r.distance % ticks
-    δ₊ = p₀ == 0 ? false : δ > (r.direction == left ? p₀ : ticks - p₀)
+    Δ = floor(r.distance / TICKS)
+    δ = r.distance % TICKS
+    δ₊ = p₀ == 0 ? false : δ > (r.direction == left ? p₀ : TICKS - p₀)
     p₊ = p₁ == 0
     Δ + (δ₊ || p₊ ? 1 : 0)
 end
 
 
 function Base.:+(s::DialState, r::Rotation)::DialState
-    d = r.distance % ticks
+    d = r.distance % TICKS
     p = r.direction == left ? s.position - d : s.position + d
     p₁ = (p < 0 ? p + 100 : p) % 100
     # z = z₀(p₁) # Part I

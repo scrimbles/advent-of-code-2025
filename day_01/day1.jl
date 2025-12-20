@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# using adventofcode
+
 include("src/rotations.jl")
 using .Rotations: Rotation, DialState
 
